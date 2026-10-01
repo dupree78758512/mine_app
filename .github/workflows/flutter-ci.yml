@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main, copilot/update-app-status ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
