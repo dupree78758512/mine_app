@@ -6,7 +6,7 @@ analyzer:
     strict-inference: true
     strict-raw-types: true
 
-lints:
+linter:
   rules:
     - avoid_print
     - prefer_const_constructors
