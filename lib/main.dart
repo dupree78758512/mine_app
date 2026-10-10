@@ -48,12 +48,17 @@ class TodoItem {
   }
 
   factory TodoItem.fromMap(Map<String, dynamic> map) {
+    final createdAtValue = map['createdAt'];
+    final parsedCreatedAt = createdAtValue is String
+        ? DateTime.tryParse(createdAtValue) ?? DateTime.now()
+        : DateTime.now();
+
     return TodoItem(
-      id: map['id'],
-      title: map['title'],
-      description: map['description'],
-      isCompleted: map['isCompleted'],
-      createdAt: DateTime.parse(map['createdAt']),
+      id: map['id']?.toString() ?? '',
+      title: map['title']?.toString() ?? '',
+      description: map['description']?.toString() ?? '',
+      isCompleted: map['isCompleted'] == true,
+      createdAt: parsedCreatedAt,
     );
   }
 }
@@ -101,7 +106,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
   }
 
   void _addTodo() {
-    if (_titleController.text.isEmpty) {
+    final trimmedTitle = _titleController.text.trim();
+    if (trimmedTitle.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a title')),
       );
@@ -110,8 +116,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
     final newTodo = TodoItem(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: _titleController.text,
-      description: _descriptionController.text,
+      title: trimmedTitle,
+      description: _descriptionController.text.trim(),
       createdAt: DateTime.now(),
     );
 
@@ -159,8 +165,9 @@ class _TodoListScreenState extends State<TodoListScreen> {
   }
 
   void _editTodo(int index) {
-    _titleController.text = _todos[index].title;
-    _descriptionController.text = _todos[index].description;
+    final todo = _todos[index];
+    final titleController = TextEditingController(text: todo.title);
+    final descriptionController = TextEditingController(text: todo.description);
 
     showDialog(
       context: context,
@@ -170,7 +177,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              controller: _titleController,
+              controller: titleController,
               decoration: const InputDecoration(
                 labelText: 'Title',
                 border: OutlineInputBorder(),
@@ -178,7 +185,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
             ),
             const SizedBox(height: 16),
             TextField(
-              controller: _descriptionController,
+              controller: descriptionController,
               decoration: const InputDecoration(
                 labelText: 'Description',
                 border: OutlineInputBorder(),
@@ -194,13 +201,19 @@ class _TodoListScreenState extends State<TodoListScreen> {
           ),
           ElevatedButton(
             onPressed: () {
+              final newTitle = titleController.text.trim();
+              if (newTitle.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a title')),
+                );
+                return;
+              }
+
               setState(() {
-                _todos[index].title = _titleController.text;
-                _todos[index].description = _descriptionController.text;
+                _todos[index].title = newTitle;
+                _todos[index].description = descriptionController.text.trim();
               });
               _saveTodos();
-              _titleController.clear();
-              _descriptionController.clear();
               Navigator.pop(context);
 
               ScaffoldMessenger.of(context).showSnackBar(
@@ -318,7 +331,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                     : TextDecoration.none,
                               ),
                             ),
-                            trailing: PopupMenuButton(
+                            trailing: PopupMenuButton<void>(
                               itemBuilder: (context) => [
                                 PopupMenuItem(
                                   child: const Text('Edit'),
