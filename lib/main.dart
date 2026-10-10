@@ -331,7 +331,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                     : TextDecoration.none,
                               ),
                             ),
-                            trailing: PopupMenuButton(
+                            trailing: PopupMenuButton<void>(
                               itemBuilder: (context) => [
                                 PopupMenuItem(
                                   child: const Text('Edit'),
