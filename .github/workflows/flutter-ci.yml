@@ -2,9 +2,9 @@ name: Flutter CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, copilot/update-app-status ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, copilot/update-app-status ]
 
 permissions:
   contents: read
