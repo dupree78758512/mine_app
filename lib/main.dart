@@ -7,7 +7,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -48,18 +48,23 @@ class TodoItem {
   }
 
   factory TodoItem.fromMap(Map<String, dynamic> map) {
+    final createdAtValue = map['createdAt'];
+    final parsedCreatedAt = createdAtValue is String
+        ? DateTime.tryParse(createdAtValue) ?? DateTime.now()
+        : DateTime.now();
+
     return TodoItem(
-      id: map['id'] as String,
-      title: map['title'] as String,
-      description: map['description'] as String,
-      isCompleted: map['isCompleted'] as bool,
-      createdAt: DateTime.parse(map['createdAt'] as String),
+      id: map['id']?.toString() ?? '',
+      title: map['title']?.toString() ?? '',
+      description: map['description']?.toString() ?? '',
+      isCompleted: map['isCompleted'] == true,
+      createdAt: parsedCreatedAt,
     );
   }
 }
 
 class TodoListScreen extends StatefulWidget {
-  const TodoListScreen({super.key});
+  const TodoListScreen({Key? key}) : super(key: key);
 
   @override
   State<TodoListScreen> createState() => _TodoListScreenState();
@@ -79,14 +84,13 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
   Future<void> _initializePreferences() async {
     _prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    await _loadTodos();
+    _loadTodos();
   }
 
   Future<void> _loadTodos() async {
     final String? todosJson = _prefs.getString('todos');
     if (todosJson != null) {
-      final List<dynamic> decodedList = jsonDecode(todosJson) as List<dynamic>;
+      final List<dynamic> decodedList = jsonDecode(todosJson);
       setState(() {
         _todos = decodedList
             .map((item) => TodoItem.fromMap(item as Map<String, dynamic>))
@@ -102,7 +106,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
   }
 
   void _addTodo() {
-    if (_titleController.text.isEmpty) {
+    final trimmedTitle = _titleController.text.trim();
+    if (trimmedTitle.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a title')),
       );
@@ -111,8 +116,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
     final newTodo = TodoItem(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: _titleController.text,
-      description: _descriptionController.text,
+      title: trimmedTitle,
+      description: _descriptionController.text.trim(),
       createdAt: DateTime.now(),
     );
 
@@ -160,10 +165,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
   }
 
   void _editTodo(int index) {
-    _titleController.text = _todos[index].title;
-    _descriptionController.text = _todos[index].description;
+    final todo = _todos[index];
+    final titleController = TextEditingController(text: todo.title);
+    final descriptionController = TextEditingController(text: todo.description);
 
-    showDialog<void>(
+    showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Edit Todo'),
@@ -171,7 +177,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              controller: _titleController,
+              controller: titleController,
               decoration: const InputDecoration(
                 labelText: 'Title',
                 border: OutlineInputBorder(),
@@ -179,7 +185,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
             ),
             const SizedBox(height: 16),
             TextField(
-              controller: _descriptionController,
+              controller: descriptionController,
               decoration: const InputDecoration(
                 labelText: 'Description',
                 border: OutlineInputBorder(),
@@ -195,13 +201,19 @@ class _TodoListScreenState extends State<TodoListScreen> {
           ),
           ElevatedButton(
             onPressed: () {
+              final newTitle = titleController.text.trim();
+              if (newTitle.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a title')),
+                );
+                return;
+              }
+
               setState(() {
-                _todos[index].title = _titleController.text;
-                _todos[index].description = _descriptionController.text;
+                _todos[index].title = newTitle;
+                _todos[index].description = descriptionController.text.trim();
               });
               _saveTodos();
-              _titleController.clear();
-              _descriptionController.clear();
               Navigator.pop(context);
 
               ScaffoldMessenger.of(context).showSnackBar(
@@ -321,11 +333,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
                             ),
                             trailing: PopupMenuButton<void>(
                               itemBuilder: (context) => [
-                                PopupMenuItem<void>(
+                                PopupMenuItem(
                                   child: const Text('Edit'),
                                   onTap: () => _editTodo(index),
                                 ),
-                                PopupMenuItem<void>(
+                                PopupMenuItem(
                                   child: const Text('Delete'),
                                   onTap: () => _deleteTodo(index),
                                 ),
