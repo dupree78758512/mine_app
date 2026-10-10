@@ -1,0 +1,22 @@
+{
+  "name": "Mine App - To-Do List",
+  "short_name": "MineApp",
+  "description": "A Flutter to-do list application with local storage functionality.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2196F3",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/Icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/Icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
