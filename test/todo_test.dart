@@ -110,7 +110,7 @@ void main() {
       expect(find.text('Delete Me'), findsOneWidget);
 
       // Open the popup menu button
-      await tester.tap(find.byType(PopupMenuButton));
+      await tester.tap(find.byType(PopupMenuButton<void>));
       await tester.pumpAndSettle();
 
       // Tap on Delete item
@@ -140,7 +140,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Open popup menu
-      await tester.tap(find.byType(PopupMenuButton));
+      await tester.tap(find.byType(PopupMenuButton<void>));
       await tester.pumpAndSettle();
 
       // Tap on Edit
