@@ -7,7 +7,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -49,17 +49,17 @@ class TodoItem {
 
   factory TodoItem.fromMap(Map<String, dynamic> map) {
     return TodoItem(
-      id: map['id'],
-      title: map['title'],
-      description: map['description'],
-      isCompleted: map['isCompleted'],
-      createdAt: DateTime.parse(map['createdAt']),
+      id: map['id'] as String,
+      title: map['title'] as String,
+      description: map['description'] as String,
+      isCompleted: map['isCompleted'] as bool,
+      createdAt: DateTime.parse(map['createdAt'] as String),
     );
   }
 }
 
 class TodoListScreen extends StatefulWidget {
-  const TodoListScreen({Key? key}) : super(key: key);
+  const TodoListScreen({super.key});
 
   @override
   State<TodoListScreen> createState() => _TodoListScreenState();
@@ -79,13 +79,14 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
   Future<void> _initializePreferences() async {
     _prefs = await SharedPreferences.getInstance();
-    _loadTodos();
+    if (!mounted) return;
+    await _loadTodos();
   }
 
   Future<void> _loadTodos() async {
     final String? todosJson = _prefs.getString('todos');
     if (todosJson != null) {
-      final List<dynamic> decodedList = jsonDecode(todosJson);
+      final List<dynamic> decodedList = jsonDecode(todosJson) as List<dynamic>;
       setState(() {
         _todos = decodedList
             .map((item) => TodoItem.fromMap(item as Map<String, dynamic>))
@@ -162,7 +163,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
     _titleController.text = _todos[index].title;
     _descriptionController.text = _todos[index].description;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Edit Todo'),
@@ -318,13 +319,13 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                     : TextDecoration.none,
                               ),
                             ),
-                            trailing: PopupMenuButton(
+                            trailing: PopupMenuButton<void>(
                               itemBuilder: (context) => [
-                                PopupMenuItem(
+                                PopupMenuItem<void>(
                                   child: const Text('Edit'),
                                   onTap: () => _editTodo(index),
                                 ),
-                                PopupMenuItem(
+                                PopupMenuItem<void>(
                                   child: const Text('Delete'),
                                   onTap: () => _deleteTodo(index),
                                 ),
